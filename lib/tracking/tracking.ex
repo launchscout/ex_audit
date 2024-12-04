@@ -23,31 +23,27 @@ defmodule ExAudit.Tracking do
   def compare_versions(action, old, new) do
     schema = Map.get(old, :__struct__, Map.get(new, :__struct__))
 
-    if schema in tracked_schemas() do
-      assocs = schema.__schema__(:associations)
+    assocs = schema.__schema__(:associations)
 
-      patch =
-        ExAudit.Diff.diff(
-          ExAudit.Tracker.map_struct(old) |> Map.drop(assocs),
-          ExAudit.Tracker.map_struct(new) |> Map.drop(assocs)
-        )
+    patch =
+      ExAudit.Diff.diff(
+        ExAudit.Tracker.map_struct(old) |> Map.drop(assocs),
+        ExAudit.Tracker.map_struct(new) |> Map.drop(assocs)
+      )
 
-      case patch do
-        :not_changed ->
-          []
+    case patch do
+      :not_changed ->
+        []
 
-        patch ->
-          params = %{
-            entity_id: Map.get(old, :id) || Map.get(new, :id),
-            entity_schema: schema,
-            patch: patch,
-            action: action
-          }
+      patch ->
+        params = %{
+          entity_id: Map.get(old, :id) || Map.get(new, :id),
+          entity_schema: schema,
+          patch: patch,
+          action: action
+        }
 
-          [params]
-      end
-    else
-      []
+        [params]
     end
   end
 
